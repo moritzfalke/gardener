@@ -173,6 +173,14 @@ func (b *Botanist) staticControlPlaneComponents(useBootstrapEtcd, useShootAccess
 	)
 }
 
+// oscExtensionControllerAbsent returns true when no OperatingSystemConfig extension controller is deployed for this
+// shoot. This is the case for self-hosted shoots with unmanaged infrastructure (see gardenadm's wantedExtensionKinds),
+// where the gardener-node-agent applies the OperatingSystemConfig locally. In this scenario the OSC status is never
+// written, so waiting for the OSC to become ready would hang forever.
+func (b *Botanist) oscExtensionControllerAbsent() bool {
+	return b.Shoot.IsSelfHosted() && !v1beta1helper.HasManagedInfrastructure(b.Shoot.GetInfo())
+}
+
 // DeployStaticControlPlaneDeployments deploys the deployments for the static control plane components. It also updates
 // the OperatingSystemConfig, waits for it to be reconciled by the OS extension, and deploys the ManagedResource
 // containing the Secret with OperatingSystemConfig for gardener-node-agent.
@@ -191,8 +199,10 @@ func (b *Botanist) DeployStaticControlPlaneDeployments(ctx context.Context, useB
 	}
 
 	// waiting for the OSC ensures that we also pick up the status written by the OS extension (e.g., extensionUnits)
-	if err := b.Shoot.Components.Extensions.OperatingSystemConfig.Wait(ctx); err != nil {
-		return fmt.Errorf("failed waiting for OperatingSystemConfig to be ready: %w", err)
+	if !b.oscExtensionControllerAbsent() {
+		if err := b.Shoot.Components.Extensions.OperatingSystemConfig.Wait(ctx); err != nil {
+			return fmt.Errorf("failed waiting for OperatingSystemConfig to be ready: %w", err)
+		}
 	}
 
 	if err := b.DeployManagedResourceForGardenerNodeAgent(ctx, b.isGardenlet()); err != nil {
@@ -269,6 +279,11 @@ func (b *Botanist) populateStaticAdminTokenToAccessTokenSecret(ctx context.Conte
 // plane components running as static pods. apiServerAddress is the address of the API server that is used by the
 // components on the nodes.
 func (b *Botanist) DeployOperatingSystemConfigWithStaticPods(ctx context.Context, useBootstrapEtcd, useShootAccessTokens bool, bootstrapEtcdBackupPath, apiServerAddress string) (*operatingsystemconfig.Data, *gardencorev1beta1.Worker, error) {
+	// Skip waiting for the OperatingSystemConfig to become ready when no extension controller will ever reconcile it:
+	// either because the gardener-node-agent applies it locally during bootstrap (useBootstrapEtcd), or because this is
+	// a self-hosted shoot with unmanaged infrastructure (no OSC extension controller is deployed).
+	skipOSCWait := useBootstrapEtcd || b.oscExtensionControllerAbsent()
+
 	pods, err := b.staticControlPlanePods(ctx, useBootstrapEtcd, useShootAccessTokens, bootstrapEtcdBackupPath)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed computing files for static control plane pods: %w", err)
@@ -293,9 +308,10 @@ func (b *Botanist) DeployOperatingSystemConfigWithStaticPods(ctx context.Context
 	// the additional files. This avoids a race where the extension controller clears the operation=reconcile annotation
 	// between Deploy() and the subsequent patch: without this Wait(), the merge-from base in the patch still carries
 	// the annotation (set by Deploy()), so the diff is a no-op for the annotation and the extension never sees the
-	// updated file set. Skipped during `gardenadm init` (useBootstrapEtcd=true) where no extension controller is
-	// running — the GNA applies the OSC locally, so no external controller can clear the annotation.
-	if !useBootstrapEtcd {
+	// updated file set. Skipped when no OSC extension controller reconciles the OSC (see skipOSCWait) — e.g. during
+	// `gardenadm init` (useBootstrapEtcd=true) or for self-hosted shoots with unmanaged infrastructure — where the GNA
+	// applies the OSC locally, so no external controller can clear the annotation.
+	if !skipOSCWait {
 		if err := b.Shoot.Components.Extensions.OperatingSystemConfig.Wait(ctx); err != nil {
 			return nil, nil, fmt.Errorf("failed waiting for OperatingSystemConfig to be ready before patching static pod files: %w", err)
 		}
@@ -320,7 +336,7 @@ func (b *Botanist) DeployOperatingSystemConfigWithStaticPods(ctx context.Context
 		return nil, nil, fmt.Errorf("failed patching OperatingSystemConfig with additional files for static control plane pods: %w", err)
 	}
 
-	if !useBootstrapEtcd {
+	if !skipOSCWait {
 		if err := b.Shoot.Components.Extensions.OperatingSystemConfig.Wait(ctx); err != nil {
 			return nil, nil, fmt.Errorf("failed waiting for OperatingSystemConfig to be ready: %w", err)
 		}

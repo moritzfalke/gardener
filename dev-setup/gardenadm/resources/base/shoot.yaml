@@ -43,6 +43,7 @@ spec:
         kubernetes:
           kubelet:
             maxPods: 250
+            failSwapOn: false # Swap is not supported in our kindest/node machine pods.
   kubernetes:
     version: 1.37.0
     kubelet:
