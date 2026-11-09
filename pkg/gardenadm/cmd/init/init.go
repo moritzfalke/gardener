@@ -78,7 +78,7 @@ func RunInitFlow(ctx context.Context, b *gardenadmbotanist.GardenadmBotanist, op
 	if err := b.FS.MkdirAll(dir, os.ModeDir); err != nil {
 		return fmt.Errorf("failed creating config directory location dir %s: %w", dir, err)
 	}
-	if err := b.FS.WriteFile(cmd.ConfigDirLocation, []byte(opts.ConfigDir), 0640); err != nil {
+	if err := b.FS.WriteFile(cmd.ConfigDirLocation, []byte(opts.ConfigDir), 0o640); err != nil {
 		return fmt.Errorf("failed writing config directory location file %s: %w", cmd.ConfigDirLocation, err)
 	}
 
@@ -161,10 +161,10 @@ func RunInitFlow(ctx context.Context, b *gardenadmbotanist.GardenadmBotanist, op
 				WithDependencies(reconcileGardenerResourceManagerInPodNetwork).
 				SkipIf(podNetworkAvailable || opts.UseHostNetwork),
 		)
-		reconcileControlPlane = g.AddGroup(
-			b.ReconcileControlPlaneTaskGroup(false).
-				WithDependencies(gardenadmbotanist.TaskGroupReconcileExtensionControllers),
-		)
+		// reconcileControlPlane = g.AddGroup(
+		// 	b.ReconcileControlPlaneTaskGroup(false).
+		// 		WithDependencies(gardenadmbotanist.TaskGroupReconcileExtensionControllers),
+		// )
 		syncPointBootstrapped = flow.NewTaskIDs(
 			reconcileNetworkPolicies,
 			reconcileRuntimeGardenerResourceManager,
@@ -295,7 +295,7 @@ func RunInitFlow(ctx context.Context, b *gardenadmbotanist.GardenadmBotanist, op
 			Name:         "Tainting control plane node so that cloud-controller-manager initializes it",
 			Fn:           b.TaintControlPlaneNodeForCloudProviderInitialization,
 			SkipIf:       !b.Shoot.HasManagedInfrastructure(),
-			Dependencies: flow.NewTaskIDs(reconcileSystemComponents, reconcileControlPlane, waitUntilGardenerNodeAgentLeaseIsRenewed),
+			Dependencies: flow.NewTaskIDs(reconcileSystemComponents, waitUntilGardenerNodeAgentLeaseIsRenewed),
 		})
 		_ = g.Add(flow.Task{
 			Name:         "Waiting until control plane node is initialized by cloud-controller-manager",

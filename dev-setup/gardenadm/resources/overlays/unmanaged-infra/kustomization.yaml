@@ -21,3 +21,15 @@ patches:
     - op: add
       path: /spec/provider/workers/1/kubernetes/version
       value: "1.36.0"
+# Remove the provider-local Extension so the unmanaged-infra scenario omits it from the generated manifests.
+- target:
+    group: operator.gardener.cloud
+    version: v1alpha1
+    kind: Extension
+    name: provider-local
+  patch: |-
+    $patch: delete
+    apiVersion: operator.gardener.cloud/v1alpha1
+    kind: Extension
+    metadata:
+      name: provider-local

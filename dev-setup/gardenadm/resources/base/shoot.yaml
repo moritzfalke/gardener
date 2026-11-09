@@ -15,34 +15,34 @@ spec:
   provider:
     type: local
     workers:
-    - name: control-plane
-      controlPlane:
-        backup:
-          provider: local
-          credentialsRef:
-            apiVersion: v1
-            kind: Secret
-            name: backup-local
-            namespace: garden
-      machine:
-        type: local
-        image:
-          name: local
-      minimum: 1
-      maximum: 1
-    - name: worker
-      machine:
-        type: local
-        image:
-          name: local
-      minimum: 1
-      # Setting max > min triggers the deployment of the cluster-autoscaler
-      maximum: 2
-      systemComponents:
-        allow: true
-      kubernetes:
-        kubelet:
-          maxPods: 250
+      - name: control-plane
+        controlPlane: {}
+        # backup:
+        #   provider: local
+        #   credentialsRef:
+        #     apiVersion: v1
+        #     kind: Secret
+        #     name: backup-local
+        #     namespace: garden
+        machine:
+          type: local
+          image:
+            name: local
+        minimum: 1
+        maximum: 1
+      - name: worker
+        machine:
+          type: local
+          image:
+            name: local
+        minimum: 1
+        # Setting max > min triggers the deployment of the cluster-autoscaler
+        maximum: 2
+        systemComponents:
+          allow: true
+        kubernetes:
+          kubelet:
+            maxPods: 250
   kubernetes:
     version: 1.37.0
     kubelet:
