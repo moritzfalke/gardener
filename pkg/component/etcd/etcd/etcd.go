@@ -459,8 +459,12 @@ func (e *etcd) Deploy(ctx context.Context) error {
 				deltaSnapshotPeriod = metav1.Duration{Duration: 5 * time.Minute}
 			)
 
+			secretRef := &corev1.SecretReference{Name: e.values.BackupConfig.SecretRefName}
+			if e.values.BackupConfig.SecretRefName == "" {
+				secretRef = nil
+			}
 			e.etcd.Spec.Backup.Store = &druidcorev1alpha1.StoreSpec{
-				SecretRef: &corev1.SecretReference{Name: e.values.BackupConfig.SecretRefName},
+				SecretRef: secretRef,
 				Container: &e.values.BackupConfig.Container,
 				Provider:  &provider,
 				Prefix:    fmt.Sprintf("%s/etcd-%s", e.values.BackupConfig.Prefix, e.values.Role),

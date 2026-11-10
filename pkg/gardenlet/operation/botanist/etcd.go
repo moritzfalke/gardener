@@ -8,7 +8,6 @@ import (
 	"context"
 	"fmt"
 
-	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/sets"
@@ -123,9 +122,13 @@ func (b *Botanist) DeployEtcd(ctx context.Context) error {
 			deltaSnapshotRetentionPeriod = b.Config.ETCDConfig.DeltaSnapshotRetentionPeriod
 		}
 
+		secretRef := v1beta1constants.BackupSecretName
+		if backupConfig.Provider == "local" {
+			secretRef = ""
+		}
 		b.Shoot.Components.ControlPlane.EtcdMain.SetBackupConfig(&etcd.BackupConfig{
 			Provider:                     backupConfig.Provider,
-			SecretRefName:                v1beta1constants.BackupSecretName,
+			SecretRefName:                secretRef,
 			Prefix:                       b.Shoot.BackupEntryName,
 			Container:                    backupEntry.Spec.BucketName,
 			FullSnapshotSchedule:         snapshotSchedule,
