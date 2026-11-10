@@ -89,7 +89,6 @@ func (a *actuator) deployEtcdBackupSecret(ctx context.Context, log logr.Logger, 
 	if backupEntrySecretData == nil {
 		backupEntrySecretData = map[string][]byte{}
 	}
-	backupEntrySecretData[v1beta1constants.DataKeyBackupBucketName] = []byte(be.Spec.BucketName)
 	etcdSecretData, err := a.backupEntryDelegate.GetETCDSecretData(ctx, log, be, backupEntrySecretData)
 	if err != nil {
 		return err
