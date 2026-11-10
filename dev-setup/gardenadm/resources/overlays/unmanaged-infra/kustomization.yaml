@@ -33,3 +33,11 @@ patches:
     kind: Extension
     metadata:
       name: provider-local
+- target:
+    group: core.gardener.cloud
+    version: v1beta1
+    kind: Shoot
+    name: root
+  patch: |-
+    - op: remove
+      path: /spec/provider/type
