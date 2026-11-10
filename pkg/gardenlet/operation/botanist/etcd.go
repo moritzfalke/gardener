@@ -101,8 +101,11 @@ func getEvictionRequirement(c etcd.Class, s *shoot.Shoot) *string {
 // DeployEtcd deploys the etcd main and events.
 func (b *Botanist) DeployEtcd(ctx context.Context) error {
 	if backupConfig := v1beta1helper.GetBackupConfigForShoot(b.Shoot.GetInfo(), b.GetSeed()); backupConfig != nil {
-		secret := &corev1.Secret{}
-		if err := b.SeedClientSet.Client().Get(ctx, client.ObjectKey{Namespace: b.Shoot.ControlPlaneNamespace, Name: v1beta1constants.BackupSecretName}, secret); err != nil {
+		// Derive the backup bucket (container) name from the shoot's BackupEntry rather than from the etcd-backup
+		// Secret's data. The BackupEntry's spec.bucketName is the authoritative source and is available independently of
+		// the generated etcd-backup Secret (whose credentials are still referenced below via SecretRefName).
+		backupEntry := &gardencorev1beta1.BackupEntry{}
+		if err := b.GardenClient.Get(ctx, client.ObjectKey{Namespace: b.Shoot.GetInfo().Namespace, Name: b.Shoot.BackupEntryName}, backupEntry); err != nil {
 			return err
 		}
 
@@ -124,7 +127,7 @@ func (b *Botanist) DeployEtcd(ctx context.Context) error {
 			Provider:                     backupConfig.Provider,
 			SecretRefName:                v1beta1constants.BackupSecretName,
 			Prefix:                       b.Shoot.BackupEntryName,
-			Container:                    string(secret.Data[v1beta1constants.DataKeyBackupBucketName]),
+			Container:                    backupEntry.Spec.BucketName,
 			FullSnapshotSchedule:         snapshotSchedule,
 			LeaderElection:               backupLeaderElection,
 			DeltaSnapshotRetentionPeriod: deltaSnapshotRetentionPeriod,
