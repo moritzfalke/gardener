@@ -98,7 +98,7 @@ func wantedExtensionKinds(runsControlPlane, managedInfrastructure bool) sets.Set
 	// In the "unmanaged infrastructure" scenario, we don't deploy Infrastructure, Worker, and DNSRecord extensions
 	// because they are managed outside of Gardener.
 	if !managedInfrastructure {
-		return extensionsv1alpha1.AllExtensionKinds.Clone().Delete(extensionsv1alpha1.InfrastructureResource, extensionsv1alpha1.WorkerResource, extensionsv1alpha1.DNSRecordResource, extensionsv1alpha1.ControlPlaneResource, extensionsv1alpha1.OperatingSystemConfigResource)
+		return extensionsv1alpha1.AllExtensionKinds.Clone().Delete(extensionsv1alpha1.InfrastructureResource, extensionsv1alpha1.WorkerResource, extensionsv1alpha1.DNSRecordResource, extensionsv1alpha1.ControlPlaneResource, extensionsv1alpha1.OperatingSystemConfigResource, extensionsv1alpha1.BackupEntryResource, extensionsv1alpha1.BackupBucketResource)
 	}
 
 	// In `gardenadm init`, we deploy all extensions referenced by the shoot in the "managed infrastructure" scenario.
