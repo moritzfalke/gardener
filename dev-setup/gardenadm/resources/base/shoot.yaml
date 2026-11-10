@@ -16,14 +16,14 @@ spec:
     type: local
     workers:
       - name: control-plane
-        controlPlane: {}
-        # backup:
-        #   provider: local
-        #   credentialsRef:
-        #     apiVersion: v1
-        #     kind: Secret
-        #     name: backup-local
-        #     namespace: garden
+        controlPlane:
+          backup:
+            provider: local
+            credentialsRef:
+              apiVersion: v1
+              kind: Secret
+              name: backup-local
+              namespace: garden
         machine:
           type: local
           image:
