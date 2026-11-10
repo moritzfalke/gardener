@@ -78,7 +78,7 @@ func RunInitFlow(ctx context.Context, b *gardenadmbotanist.GardenadmBotanist, op
 	if err := b.FS.MkdirAll(dir, os.ModeDir); err != nil {
 		return fmt.Errorf("failed creating config directory location dir %s: %w", dir, err)
 	}
-	if err := b.FS.WriteFile(cmd.ConfigDirLocation, []byte(opts.ConfigDir), 0o640); err != nil {
+	if err := b.FS.WriteFile(cmd.ConfigDirLocation, []byte(opts.ConfigDir), 0640); err != nil {
 		return fmt.Errorf("failed writing config directory location file %s: %w", cmd.ConfigDirLocation, err)
 	}
 
