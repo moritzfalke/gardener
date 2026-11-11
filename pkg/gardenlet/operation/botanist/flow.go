@@ -460,14 +460,14 @@ func (b *Botanist) ReconcileControlPlaneTaskGroup(skipReadiness bool) flow.TaskG
 		deployControlPlane = g.Add(flow.Task{
 			Name:   "Deploying shoot control plane components",
 			Fn:     b.DeployControlPlane,
-			SkipIf: b.Shoot.IsWorkerless,
+			SkipIf:       b.Shoot.IsWorkerless || (b.Shoot.IsSelfHosted() && !b.Shoot.HasManagedInfrastructure()),
 		})
 		_ = g.Add(flow.Task{
 			Name: "Waiting until shoot control plane has been reconciled",
 			Fn: func(ctx context.Context) error {
 				return b.Shoot.Components.Extensions.ControlPlane.Wait(ctx)
 			},
-			SkipIf:       b.Shoot.IsWorkerless || skipReadiness,
+			SkipIf:       b.Shoot.IsWorkerless || skipReadiness || (b.Shoot.IsSelfHosted() && !b.Shoot.HasManagedInfrastructure()),
 			Dependencies: flow.NewTaskIDs(deployControlPlane),
 		})
 	)
