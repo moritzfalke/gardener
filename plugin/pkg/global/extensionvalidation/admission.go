@@ -281,11 +281,18 @@ func (e *ExtensionValidator) validateShoot(kindToExtensions map[string][]extensi
 	)
 
 	if !workerless {
-		requiredExtensions = append(requiredExtensions,
-			requiredExtension{extensionsv1alpha1.ControlPlaneResource, spec.Provider.Type, providerTypeMsg, fldPath},
-			requiredExtension{extensionsv1alpha1.InfrastructureResource, spec.Provider.Type, providerTypeMsg, fldPath},
-			requiredExtension{extensionsv1alpha1.WorkerResource, spec.Provider.Type, providerTypeMsg, fldPath},
-		)
+		// Self-hosted shoots with unmanaged infrastructure do not have Infrastructure, Worker and ControlPlane Resources
+		// so their extensions are not required.
+		selfHostedUnmanagedInfra := gardencorehelper.IsShootSelfHosted(spec.Provider.Workers) &&
+			spec.CredentialsBindingName == nil && spec.SecretBindingName == nil
+
+		if !selfHostedUnmanagedInfra {
+			requiredExtensions = append(requiredExtensions,
+				requiredExtension{extensionsv1alpha1.ControlPlaneResource, spec.Provider.Type, providerTypeMsg, fldPath},
+				requiredExtension{extensionsv1alpha1.InfrastructureResource, spec.Provider.Type, providerTypeMsg, fldPath},
+				requiredExtension{extensionsv1alpha1.WorkerResource, spec.Provider.Type, providerTypeMsg, fldPath},
+			)
+		}
 		if spec.Networking != nil && spec.Networking.Type != nil {
 			requiredExtensions = append(requiredExtensions, requiredExtension{extensionsv1alpha1.NetworkResource, *spec.Networking.Type, fmt.Sprintf("%s networking type", message), field.NewPath("spec", "networking", "type")})
 		}

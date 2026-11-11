@@ -2201,8 +2201,11 @@ func validateProvider(shootNamespace string, provider core.Provider, kubernetes 
 		maxPod  int32
 	)
 
-	if len(provider.Type) == 0 {
-		allErrs = append(allErrs, field.Required(fldPath.Child("type"), "must specify a provider type"))
+	if provider.Type == "" {
+		// Self-hosted shoots with unmanaged infrastructure do not have a provider type.
+		if !helper.IsShootSelfHosted(provider.Workers) && !hasManagedInfrastructure {
+			allErrs = append(allErrs, field.Required(fldPath.Child("type"), "must specify a provider type"))
+		}
 	} else {
 		allErrs = append(allErrs, validateDNS1123Label(provider.Type, fldPath.Child("type"))...)
 	}
@@ -2937,7 +2940,8 @@ func ValidateWorkerControlPlane(controlPlane *core.WorkerControlPlane, shootName
 			allErrs = append(allErrs, field.Required(fldPath.Child("backup", "provider"), "must provide a backup cloud provider name"))
 		}
 
-		if shootProviderType != backup.Provider && ptr.Deref(backup.Region, "") == "" {
+		// Self-hosted shoots with unmanaged Infrastrucure do not have a provider type.
+		if len(shootProviderType) > 0 && shootProviderType != backup.Provider && ptr.Deref(backup.Region, "") == "" {
 			allErrs = append(allErrs, field.Required(fldPath.Child("backup", "region"), "region must be specified for if backup provider is different from shoot provider used in `spec.provider.type`"))
 		}
 

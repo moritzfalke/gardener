@@ -73,7 +73,9 @@ func SetDefaults_Shoot(obj *Shoot) {
 			}
 		}
 
-		if worker.ControlPlane != nil && worker.ControlPlane.Exposure != nil && worker.ControlPlane.Exposure.Extension != nil && worker.ControlPlane.Exposure.Extension.Type == nil {
+		if worker.ControlPlane != nil && worker.ControlPlane.Exposure != nil && worker.ControlPlane.Exposure.Extension != nil && worker.ControlPlane.Exposure.Extension.Type == nil && len(obj.Spec.Provider.Type) > 0 {
+			// Default the exposure extension type to the shoot's provider type. Self-hosted shoots with unmanaged
+			// infrastructure may have an empty provider type; in that case the user must set the extension type explicitly.
 			worker.ControlPlane.Exposure.Extension.Type = new(obj.Spec.Provider.Type)
 		}
 

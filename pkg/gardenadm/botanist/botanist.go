@@ -30,7 +30,7 @@ import (
 	"github.com/gardener/gardener/pkg/client/kubernetes"
 	fakekubernetes "github.com/gardener/gardener/pkg/client/kubernetes/fake"
 	"github.com/gardener/gardener/pkg/gardenadm"
-	// gardenadmadmission "github.com/gardener/gardener/pkg/gardenadm/admission"
+	gardenadmadmission "github.com/gardener/gardener/pkg/gardenadm/admission"
 	"github.com/gardener/gardener/pkg/gardenlet/operation"
 	botanistpkg "github.com/gardener/gardener/pkg/gardenlet/operation/botanist"
 	"github.com/gardener/gardener/pkg/nodeagent"
@@ -105,9 +105,9 @@ func NewGardenadmBotanistFromManifests(
 		return nil, fmt.Errorf("failed reading Kubernetes resources from config directory %s: %w", dir, err)
 	}
 
-	// if err := gardenadmadmission.RunAdmissionChain(ctx, log, &resources); err != nil {
-	// 	return nil, fmt.Errorf("admission chain rejected the configuration: %w", err)
-	// }
+	if err := gardenadmadmission.RunAdmissionChain(ctx, log, &resources); err != nil {
+		return nil, fmt.Errorf("admission chain rejected the configuration: %w", err)
+	}
 
 	return NewGardenadmBotanistFromResources(ctx, log, clientSet, resources, runsControlPlane)
 }
