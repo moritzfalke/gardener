@@ -321,6 +321,10 @@ func HasManagedInfrastructure(shoot *core.Shoot) bool {
 	return shoot.Spec.CredentialsBindingName != nil || shoot.Spec.SecretBindingName != nil
 }
 
+func IsShootUnmanagedSelfHosted(shoot *core.Shoot) bool {
+	return IsShootSelfHosted(shoot.Spec.Provider.Workers) && !HasManagedInfrastructure(shoot)
+}
+
 // ControlPlaneWorkerPoolForShoot returns the worker pool running the control plane in case the shoot is self-hosted.
 func ControlPlaneWorkerPoolForShoot(workers []core.Worker) *core.Worker {
 	if idx := slices.IndexFunc(workers, func(worker core.Worker) bool {

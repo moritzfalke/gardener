@@ -800,6 +800,10 @@ func (s *Shoot) HasManagedInfrastructure() bool {
 	return v1beta1helper.HasManagedInfrastructure(s.GetInfo())
 }
 
+func (s *Shoot) IsUnmanagedSelfHosted() bool {
+	return s.IsSelfHosted() && !s.HasManagedInfrastructure()
+}
+
 // HasExtensionExposure returns true if the shoot's control plane is configured to use a
 // SelfHostedShootExposure extension object to expose the API server.
 func (s *Shoot) HasExtensionExposure() bool {

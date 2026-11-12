@@ -728,6 +728,10 @@ func HasManagedInfrastructure(shoot *gardencorev1beta1.Shoot) bool {
 	return shoot.Spec.CredentialsBindingName != nil || shoot.Spec.SecretBindingName != nil
 }
 
+func IsShootUnmanagedSelfHosted(shoot *gardencorev1beta1.Shoot) bool {
+	return IsShootSelfHosted(shoot.Spec.Provider.Workers) && !HasManagedInfrastructure(shoot)
+}
+
 // ControlPlaneExposureForShoot returns the control plane exposure configuration for the shoot,
 // or nil if the shoot is not self-hosted or the control plane worker pool is not configured with an exposure.
 func ControlPlaneExposureForShoot(shoot *gardencorev1beta1.Shoot) *gardencorev1beta1.Exposure {
