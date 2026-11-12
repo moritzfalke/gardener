@@ -2944,7 +2944,7 @@ func ValidateWorkerControlPlane(controlPlane *core.WorkerControlPlane, shootName
 			allErrs = append(allErrs, field.Required(fldPath.Child("backup", "provider"), "must provide a backup cloud provider name"))
 		}
 
-		// Self-hosted shoots with unmanaged Infrastrucure do not have a provider type.
+		// Self-hosted shoots with unmanaged Infrastructure do not have a provider type.
 		if len(shootProviderType) > 0 && shootProviderType != backup.Provider && ptr.Deref(backup.Region, "") == "" {
 			allErrs = append(allErrs, field.Required(fldPath.Child("backup", "region"), "region must be specified for if backup provider is different from shoot provider used in `spec.provider.type`"))
 		}

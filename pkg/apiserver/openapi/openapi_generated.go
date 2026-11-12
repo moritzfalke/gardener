@@ -7919,7 +7919,6 @@ func schema_pkg_apis_core_v1beta1_Provider(ref common.ReferenceCallback) common.
 					"type": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Type is the type of the provider. This field is immutable.",
-							Default:     "",
 							Type:        []string{"string"},
 							Format:      "",
 						},
@@ -7962,7 +7961,6 @@ func schema_pkg_apis_core_v1beta1_Provider(ref common.ReferenceCallback) common.
 						},
 					},
 				},
-				Required: []string{"type"},
 			},
 		},
 		Dependencies: []string{
@@ -8715,8 +8713,7 @@ func schema_pkg_apis_core_v1beta1_SeedProvider(ref common.ReferenceCallback) com
 				Properties: map[string]spec.Schema{
 					"type": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Type is the name of the provider.",
-							Default:     "",
+							Description: "Type is the name of the provider. It is empty for seeds running on unmanaged infrastructure.",
 							Type:        []string{"string"},
 							Format:      "",
 						},
@@ -8750,7 +8747,7 @@ func schema_pkg_apis_core_v1beta1_SeedProvider(ref common.ReferenceCallback) com
 						},
 					},
 				},
-				Required: []string{"type", "region"},
+				Required: []string{"region"},
 			},
 		},
 		Dependencies: []string{

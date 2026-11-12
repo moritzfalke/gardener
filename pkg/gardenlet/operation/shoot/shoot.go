@@ -800,6 +800,7 @@ func (s *Shoot) HasManagedInfrastructure() bool {
 	return v1beta1helper.HasManagedInfrastructure(s.GetInfo())
 }
 
+// IsUnmanagedSelfHosted returns if the shoot is self-hosted and running on unmanaged infrastructure.
 func (s *Shoot) IsUnmanagedSelfHosted() bool {
 	return s.IsSelfHosted() && !s.HasManagedInfrastructure()
 }

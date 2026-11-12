@@ -728,6 +728,7 @@ func HasManagedInfrastructure(shoot *gardencorev1beta1.Shoot) bool {
 	return shoot.Spec.CredentialsBindingName != nil || shoot.Spec.SecretBindingName != nil
 }
 
+// IsShootUnmanagedSelfHosted if the shoot is self-hosted and running on unmanaged infrastructure.
 func IsShootUnmanagedSelfHosted(shoot *gardencorev1beta1.Shoot) bool {
 	return IsShootSelfHosted(shoot.Spec.Provider.Workers) && !HasManagedInfrastructure(shoot)
 }

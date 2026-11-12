@@ -746,7 +746,7 @@ func ComputeRequiredExtensionsForShoot(shoot *gardencorev1beta1.Shoot, seed *gar
 	}
 
 	if !v1beta1helper.IsWorkerless(shoot) {
-		// Seeds on unmanaged infrastructure do not require provider extensions for ControlPlane, Infrastrucure and Worker resources.
+		// Seeds on unmanaged infrastructure do not require provider extensions for ControlPlane, Infrastructure and Worker resources.
 		if !v1beta1helper.IsShootUnmanagedSelfHosted(shoot) {
 			requiredExtensions.Insert(ExtensionsID(extensionsv1alpha1.ControlPlaneResource, shoot.Spec.Provider.Type))
 			requiredExtensions.Insert(ExtensionsID(extensionsv1alpha1.InfrastructureResource, shoot.Spec.Provider.Type))

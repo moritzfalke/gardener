@@ -203,7 +203,7 @@ type ShootNetworks struct {
 
 // SeedProvider defines the provider-specific information of this Seed cluster.
 type SeedProvider struct {
-	// Type is the name of the provider.
+	// Type is the name of the provider. It is empty for seeds running on unmanaged infrastructure.
 	Type string
 	// ProviderConfig is the configuration passed to Seed resource.
 	ProviderConfig *runtime.RawExtension

@@ -283,7 +283,7 @@ func (e *ExtensionValidator) validateShoot(kindToExtensions map[string][]extensi
 	)
 
 	if !workerless {
-		// Seeds on unmanaged infrastructure do not require provider extensions for ControlPlane, Infrastrucure and Worker resources.
+		// Seeds on unmanaged infrastructure do not require provider extensions for ControlPlane, Infrastructure and Worker resources.
 		if !gardencorehelper.IsShootUnmanagedSelfHosted(&core.Shoot{Spec: spec}) {
 			requiredExtensions = append(requiredExtensions,
 				requiredExtension{extensionsv1alpha1.ControlPlaneResource, spec.Provider.Type, providerTypeMsg, fldPath},

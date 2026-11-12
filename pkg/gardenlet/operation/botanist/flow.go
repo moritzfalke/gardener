@@ -466,6 +466,7 @@ func (b *Botanist) ReconcileControlPlaneTaskGroup(skipReadiness bool) flow.TaskG
 			Fn: func(ctx context.Context) error {
 				return b.Shoot.Components.Extensions.ControlPlane.Wait(ctx)
 			},
+			SkipIf:       skipReadiness,
 			Dependencies: flow.NewTaskIDs(deployControlPlane),
 		})
 	)

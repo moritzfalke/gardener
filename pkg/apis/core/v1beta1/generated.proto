@@ -2864,7 +2864,7 @@ message ProjectTolerations {
 // extension controller.
 message Provider {
   // Type is the type of the provider. This field is immutable.
-  // +required
+  // +optional
   optional string type = 1;
 
   // ControlPlaneConfig contains the provider-specific control plane config blob. Please look up the concrete
@@ -3138,8 +3138,8 @@ message SeedNetworks {
 
 // SeedProvider defines the provider-specific information of this Seed cluster.
 message SeedProvider {
-  // Type is the name of the provider.
-  // +required
+  // Type is the name of the provider. It is empty for seeds running on unmanaged infrastructure.
+  // +optional
   optional string type = 1;
 
   // ProviderConfig is the configuration passed to Seed resource.
