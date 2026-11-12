@@ -1,0 +1,11 @@
+# SPDX-FileCopyrightText: Contributors to the Gardener project
+#
+# SPDX-License-Identifier: Apache-2.0
+
+# Only control-plane machines can reliably reach the self-hosted API server.
+nodeSelector:
+  worker.gardener.cloud/pool: control-plane
+tolerations:
+  - key: node-role.kubernetes.io/control-plane
+    operator: Exists
+    effect: NoSchedule

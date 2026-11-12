@@ -43,6 +43,7 @@ spec:
       kubernetes:
         kubelet:
           maxPods: 250
+          failSwapOn: false
   kubernetes:
     version: 1.37.0
     kubelet:

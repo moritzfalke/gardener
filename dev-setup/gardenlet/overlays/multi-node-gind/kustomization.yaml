@@ -7,3 +7,4 @@ components:
 
 patches:
 - path: patch-networks.yaml
+- path: patch-provider.yaml

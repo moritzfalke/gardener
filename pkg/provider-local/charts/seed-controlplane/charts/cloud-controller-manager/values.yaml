@@ -6,6 +6,8 @@ clusterName: ""
 hasManagedInfrastructure: true
 podAnnotations: {}
 podLabels: {}
+nodeSelector: {}
+tolerations: []
 priorityClassName: system-cluster-critical
 
 leaderElection: true

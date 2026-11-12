@@ -21,3 +21,23 @@ patches:
     - op: add
       path: /spec/provider/workers/1/kubernetes/version
       value: "1.36.0"
+- target:
+    group: core.gardener.cloud
+    version: v1beta1
+    kind: Shoot
+    name: root
+  patch: |-
+    - op: remove
+      path: /spec/provider/type
+- target:
+    group: operator.gardener.cloud
+    version: v1alpha1
+    kind: Extension
+    name: provider-local
+  patch: |-
+    - op: remove
+      path: /spec/resources/2
+    - op: remove
+      path: /spec/resources/3
+    - op: remove
+      path: /spec/resources/3

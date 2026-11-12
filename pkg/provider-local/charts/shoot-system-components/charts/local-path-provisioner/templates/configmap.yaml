@@ -17,6 +17,10 @@ data:
     metadata:
       name: helper-pod
     spec:
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
       - name: helper-pod
         image: {{ index .Values.images "local-path-helper" }}
