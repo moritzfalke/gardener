@@ -88,6 +88,11 @@ deploy:
           images.cloud-controller-manager-local: '{{.IMAGE_REPO_local_skaffold_cloud_controller_manager_local}}:{{.IMAGE_TAG_local_skaffold_cloud_controller_manager_local}}@{{.IMAGE_DIGEST_local_skaffold_cloud_controller_manager_local}}'
           clusterName: '{{.CLUSTER_NAME}}'
 profiles:
+  - name: unmanaged-infra
+    patches:
+      - op: add
+        path: /deploy/helm/releases/2/valuesFiles/-
+        value: dev-setup/gind/cloud-controller-manager.yaml
   - name: debug
     activation:
       - command: debug

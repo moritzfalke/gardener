@@ -346,6 +346,7 @@ export SKAFFOLD_LABEL = "skaffold.dev/run-id=gardener-local"
 %debug: export SKAFFOLD_CACHE_ARTIFACTS = false
 
 # cloud-provider-local-{up,dev,debug,down}
+# Use SCENARIO=unmanaged-infra for the self-hosted GinD cluster (CCM only, no node controllers).
 cloud-provider-local-%: export SKAFFOLD_FILENAME = $(DEV_SETUP)/skaffold-cloud-provider-local.yaml
 cloud-provider-local-up cloud-provider-local-dev cloud-provider-local-debug cloud-provider-local-down: $(SKAFFOLD) $(HELM) $(KUBECTL)
 	$(DEV_SETUP)/cloud-provider-local.sh $(subst cloud-provider-local-,,$@)

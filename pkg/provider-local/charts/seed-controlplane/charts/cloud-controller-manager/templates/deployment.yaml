@@ -69,14 +69,23 @@ spec:
     spec:
       priorityClassName: {{ .Values.priorityClassName }}
       serviceAccountName: cloud-controller-manager
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if or .Values.tolerations (and (include "is-shoot" .) (not (hasPrefix "shoot-" .Release.Namespace)) .Values.hasManagedInfrastructure) }}
+      tolerations:
       {{- if and (include "is-shoot" .) (not (hasPrefix "shoot-" .Release.Namespace)) .Values.hasManagedInfrastructure }}
       # Case: CCM runs in kube-system namespace of a self-hosted shoot with managed infrastructure. The control plane
       # node registers with the "uninitialized" taint (kubelet runs with --cloud-provider=external), which is only
       # removed by the node controller of this cloud-controller-manager. Hence, it must tolerate the taint itself.
-      tolerations:
       - key: node.cloudprovider.kubernetes.io/uninitialized
         operator: Exists
         effect: NoSchedule
+      {{- end }}
+      {{- with .Values.tolerations }}
+      {{- toYaml . | nindent 6 }}
+      {{- end }}
       {{- end }}
       containers:
       - name: cloud-controller-manager

@@ -28,8 +28,4 @@ make gardenadm-up SCENARIO=connect-kind
 
 make gind-up GARDENADM_INIT_FLAGS="--log-level=debug" SCENARIO=join
 
-# Deploy the local cloud-controller-manager into the self-hosted shoot so LoadBalancer Services (istio
-# ingress gateway) get their ingress status and the shoot reconciliation does not block on Istio readiness.
-./hack/gardenadm-deploy-lb.sh
-
 make test-e2e-local-gardenadm-unmanaged-infra-restore

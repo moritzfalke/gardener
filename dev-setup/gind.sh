@@ -80,6 +80,9 @@ case "$COMMAND" in
       ./hack/usage/generate-kubeconfig.sh self-hosted-shoot > "$KUBECONFIG_SELFHOSTEDSHOOT_CLUSTER"
       cp "$KUBECONFIG_SELFHOSTEDSHOOT_CLUSTER" "$(dirname "$0")/gardenconfig/components/credentials/secret-project-garden/kubeconfig/kubeconfig"
       cp "$KUBECONFIG_SELFHOSTEDSHOOT_CLUSTER" "$(dirname "$0")/gardenconfig/components/credentials/secret-project-local/kubeconfig/kubeconfig"
+
+      # deploy the cloud controller manager to reconcile LocalLoadbalancers.
+      make cloud-provider-local-up SCENARIO=unmanaged-infra KUBECONFIG="$KUBECONFIG_SELFHOSTEDSHOOT_CLUSTER"
     fi
 
     # Run `gardenadm join` on gind-machine-1 to join it as worker node
