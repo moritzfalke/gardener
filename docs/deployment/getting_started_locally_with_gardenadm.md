@@ -177,6 +177,42 @@ gind-machine-0   Ready    control-plane   7m15s   v1.35.0
 gind-machine-1   Ready    worker          8m48s   v1.35.0
 ```
 
+### Deploying the Local Cloud Controller Manager
+
+To assign ingress addresses to `LoadBalancer` Services (for example, the Istio ingress gateway after connecting the shoot), deploy the local cloud controller manager:
+
+```shell
+make cloud-provider-local-up SCENARIO=unmanaged-infra
+```
+
+This uses the self-hosted shoot kubeconfig and cluster name `gind` by default; override them with `KUBECONFIG=...` and `CLUSTER_NAME=...` if needed.
+It deploys only the CCM and its supporting RBAC/configuration, and builds the load-balancer image used by the CCM.
+Only the service controller is enabled. The CCM runs on a control-plane machine with the required API server egress labels.
+The same scenario also supports `cloud-provider-local-dev`, `cloud-provider-local-debug`, and `cloud-provider-local-down`.
+
+### Scheduling Shoots on a GinD Seed
+
+After `make gind-up SCENARIO=full`, the self-hosted shoot is registered as a Seed without an infrastructure provider type.
+The local CloudProfile enables cross-provider scheduling with `spec.seedSelector.providerTypes: ["*"]`, allowing normal provider-local shoots to be scheduled onto this Seed.
+This is a local setup configuration; other CloudProfiles still require matching provider types unless they explicitly enable cross-provider scheduling.
+
+### Local Persistent Storage
+
+After bootstrapping the self-hosted shoot, `make gind-up` deploys the local-path provisioner and a default StorageClass via `dev-setup/skaffold-storage-local.yaml`, using the existing provider-local charts.
+The provisioner and helper image references are read from the provider-local image vector; no images need to be built.
+This allows PersistentVolumeClaims used by Gardener (for example, etcd and logging) to be provisioned automatically.
+The provisioner runs on a control-plane machine; volumes are stored locally on the node running their consumer pod.
+
+To install or update storage in an already running GinD cluster without repeating bootstrap:
+
+```shell
+make gind-storage-up
+```
+
+Override the target kubeconfig with `KUBECONFIG=...` if needed.
+The StorageClass uses `WaitForFirstConsumer`, so a claim can remain `Pending` until a pod using it can be scheduled.
+This storage is for local development only: it is not replicated and is lost when the machine containers are removed.
+
 ### Tearing Down
 
 When you are done, you can delete the setup by running

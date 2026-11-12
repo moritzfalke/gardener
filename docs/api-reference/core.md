@@ -9827,6 +9827,7 @@ string
 </em>
 </td>
 <td>
+<em>(Optional)</em>
 <p>Type is the type of the provider. This field is immutable.</p>
 </td>
 </tr>
@@ -10723,7 +10724,8 @@ string
 </em>
 </td>
 <td>
-<p>Type is the name of the provider.</p>
+<em>(Optional)</em>
+<p>Type is the name of the provider. It is empty for seeds running on unmanaged infrastructure.</p>
 </td>
 </tr>
 <tr>
