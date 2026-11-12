@@ -1780,8 +1780,8 @@ type Alerting struct {
 // extension controller.
 type Provider struct {
 	// Type is the type of the provider. This field is immutable.
-	// +required
-	Type string `json:"type" protobuf:"bytes,1,opt,name=type"`
+	// +optional
+	Type string `json:"type,omitempty" protobuf:"bytes,1,opt,name=type"`
 	// ControlPlaneConfig contains the provider-specific control plane config blob. Please look up the concrete
 	// definition in the documentation of your provider extension.
 	// +optional
