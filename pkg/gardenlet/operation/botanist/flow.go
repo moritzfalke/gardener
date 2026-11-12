@@ -458,21 +458,20 @@ func (b *Botanist) ReconcileControlPlaneTaskGroup(skipReadiness bool) flow.TaskG
 			)
 
 		deployControlPlane = g.Add(flow.Task{
-			Name:   "Deploying shoot control plane components",
-			Fn:     b.DeployControlPlane,
-			SkipIf: b.Shoot.IsWorkerless,
+			Name: "Deploying shoot control plane components",
+			Fn:   b.DeployControlPlane,
 		})
 		_ = g.Add(flow.Task{
 			Name: "Waiting until shoot control plane has been reconciled",
 			Fn: func(ctx context.Context) error {
 				return b.Shoot.Components.Extensions.ControlPlane.Wait(ctx)
 			},
-			SkipIf:       b.Shoot.IsWorkerless || skipReadiness,
+			SkipIf:       skipReadiness,
 			Dependencies: flow.NewTaskIDs(deployControlPlane),
 		})
 	)
 
-	return g
+	return g.SkipIf(b.Shoot.IsWorkerless || b.Shoot.IsUnmanagedSelfHosted())
 }
 
 // TaskGroupReconcileDNSRecords is a flow.TaskID for a logical flow.TaskGroup.

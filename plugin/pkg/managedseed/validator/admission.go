@@ -676,7 +676,13 @@ func validateSeedSpec(spec *gardencore.SeedSpec, shoot *gardencorev1beta1.Shoot,
 	}
 
 	// Validate provider
-	if spec.Provider.Type != shoot.Spec.Provider.Type {
+	if v1beta1helper.IsShootUnmanagedSelfHosted(shoot) {
+		if spec.Provider.Type != "" {
+			allErrs = append(allErrs, field.Forbidden(fldPath.Child("provider", "type"), "must not specify a provider type for a seed backed by a self-hosted shoot with unmanaged infrastructure"))
+		}
+	} else if spec.Provider.Type == "" {
+		allErrs = append(allErrs, field.Required(fldPath.Child("provider", "type"), "must specify a provider type when the backing shoot is not self-hosted with unmanaged infrastructure"))
+	} else if spec.Provider.Type != shoot.Spec.Provider.Type {
 		allErrs = append(allErrs, field.Invalid(fldPath.Child("provider", "type"), spec.Provider.Type, "seed provider type must be equal to shoot provider type "+shoot.Spec.Provider.Type))
 	}
 	if spec.Provider.Region != shoot.Spec.Region {

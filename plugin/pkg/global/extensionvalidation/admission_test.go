@@ -229,6 +229,46 @@ var _ = Describe("ExtensionValidator", func() {
 			Expect(err).NotTo(HaveOccurred())
 		})
 
+		DescribeTable("should allow a seed without a provider type and without a ControlPlane extension", func(operation admission.Operation) {
+			newSeed := seed.DeepCopy()
+			newSeed.Spec.Provider.Type = ""
+			newSeed.Spec.Extensions = []core.Extension{{Type: "foo1"}}
+			for _, registration := range kindToTypes {
+				if registration.extensionKind == extensionsv1alpha1.ControlPlaneResource {
+					continue
+				}
+				controllerRegistration := createControllerRegistrationForKindType(registration.extensionKind, registration.extensionType, true, nil, registration.clusterCompatibility...)
+				Expect(coreInformerFactory.Core().V1beta1().ControllerRegistrations().Informer().GetStore().Add(controllerRegistration)).To(Succeed())
+			}
+
+			attrs := admission.NewAttributesRecord(newSeed, seed, core.Kind("Seed").WithVersion("version"), newSeed.Namespace, newSeed.Name, core.Resource("seeds").WithVersion("version"), "", operation, nil, false, nil)
+			Expect(admissionHandler.Validate(context.TODO(), attrs, nil)).To(Succeed())
+		},
+			Entry("creation", admission.Create),
+			Entry("update", admission.Update),
+		)
+
+		DescribeTable("should still require configured extensions when the seed provider type is empty", func(missingKind string) {
+			newSeed := seed.DeepCopy()
+			newSeed.Spec.Provider.Type = ""
+			newSeed.Spec.Extensions = []core.Extension{{Type: "foo1"}}
+			for _, registration := range kindToTypes {
+				if registration.extensionKind == extensionsv1alpha1.ControlPlaneResource || registration.extensionKind == missingKind {
+					continue
+				}
+				controllerRegistration := createControllerRegistrationForKindType(registration.extensionKind, registration.extensionType, true, nil, registration.clusterCompatibility...)
+				Expect(coreInformerFactory.Core().V1beta1().ControllerRegistrations().Informer().GetStore().Add(controllerRegistration)).To(Succeed())
+			}
+
+			attrs := admission.NewAttributesRecord(newSeed, nil, core.Kind("Seed").WithVersion("version"), newSeed.Namespace, newSeed.Name, core.Resource("seeds").WithVersion("version"), "", admission.Create, &metav1.CreateOptions{}, false, nil)
+			Expect(admissionHandler.Validate(context.TODO(), attrs, nil)).NotTo(Succeed())
+		},
+			Entry("backup bucket", extensionsv1alpha1.BackupBucketResource),
+			Entry("backup entry", extensionsv1alpha1.BackupEntryResource),
+			Entry("DNS record", extensionsv1alpha1.DNSRecordResource),
+			Entry("extension", extensionsv1alpha1.ExtensionResource),
+		)
+
 		It("should prevent the object from being created because some extension is not registered", func() {
 			for _, registration := range kindToTypes {
 				if !sets.New(registration.clusterCompatibility...).Has("seed") {

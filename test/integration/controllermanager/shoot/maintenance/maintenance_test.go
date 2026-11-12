@@ -1042,6 +1042,7 @@ var _ = DescribeTableSubtree("Shoot Maintenance controller tests", func(isCapabi
 			selfHostedShoot.ResourceVersion = ""
 			selfHostedShoot.Namespace = v1beta1constants.GardenNamespace
 			selfHostedShoot.Spec.CredentialsBindingName = nil
+			selfHostedShoot.Spec.Provider.Type = ""
 			selfHostedShoot.Spec.Provider.Workers = []gardencorev1beta1.Worker{
 				{
 					Name:         "worker",

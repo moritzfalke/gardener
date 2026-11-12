@@ -243,12 +243,14 @@ func (e *ExtensionValidator) validateBackupEntry(kindToExtensions map[string][]e
 
 func (e *ExtensionValidator) validateSeed(kindToExtensions map[string][]extension, spec core.SeedSpec) error {
 	var (
-		message = "given Seed uses non-registered"
-
-		requiredExtensions = requiredExtensions{
-			{extensionsv1alpha1.ControlPlaneResource, spec.Provider.Type, fmt.Sprintf("%s provider type", message), field.NewPath("spec", "provider", "type")},
-		}
+		message            = "given Seed uses non-registered"
+		requiredExtensions = requiredExtensions{}
 	)
+
+	// Seeds on unmanaged infrastructure do not require a ControlPlane extension.
+	if spec.Provider.Type != "" {
+		requiredExtensions = append(requiredExtensions, requiredExtension{extensionsv1alpha1.ControlPlaneResource, spec.Provider.Type, fmt.Sprintf("%s provider type", message), field.NewPath("spec", "provider", "type")})
+	}
 
 	if spec.Backup != nil {
 		msg := fmt.Sprintf("%s backup provider type", message)
@@ -281,11 +283,14 @@ func (e *ExtensionValidator) validateShoot(kindToExtensions map[string][]extensi
 	)
 
 	if !workerless {
-		requiredExtensions = append(requiredExtensions,
-			requiredExtension{extensionsv1alpha1.ControlPlaneResource, spec.Provider.Type, providerTypeMsg, fldPath},
-			requiredExtension{extensionsv1alpha1.InfrastructureResource, spec.Provider.Type, providerTypeMsg, fldPath},
-			requiredExtension{extensionsv1alpha1.WorkerResource, spec.Provider.Type, providerTypeMsg, fldPath},
-		)
+		// Seeds on unmanaged infrastructure do not require provider extensions for ControlPlane, Infrastructure and Worker resources.
+		if !gardencorehelper.IsShootUnmanagedSelfHosted(&core.Shoot{Spec: spec}) {
+			requiredExtensions = append(requiredExtensions,
+				requiredExtension{extensionsv1alpha1.ControlPlaneResource, spec.Provider.Type, providerTypeMsg, fldPath},
+				requiredExtension{extensionsv1alpha1.InfrastructureResource, spec.Provider.Type, providerTypeMsg, fldPath},
+				requiredExtension{extensionsv1alpha1.WorkerResource, spec.Provider.Type, providerTypeMsg, fldPath},
+			)
+		}
 		if spec.Networking != nil && spec.Networking.Type != nil {
 			requiredExtensions = append(requiredExtensions, requiredExtension{extensionsv1alpha1.NetworkResource, *spec.Networking.Type, fmt.Sprintf("%s networking type", message), field.NewPath("spec", "networking", "type")})
 		}

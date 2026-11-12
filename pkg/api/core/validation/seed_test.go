@@ -114,6 +114,59 @@ var _ = Describe("Seed Validation Tests", func() {
 			Expect(ValidateSeed(seed)).To(BeEmpty())
 		})
 
+		It("should allow an empty provider type on creation and update", func() {
+			seed.Spec.Provider.Type = ""
+
+			Expect(ValidateSeed(seed)).To(BeEmpty())
+			Expect(ValidateSeedUpdate(prepareSeedForUpdate(seed), seed)).To(BeEmpty())
+		})
+
+		It("should still require a region when the provider type is empty", func() {
+			seed.Spec.Provider.Type = ""
+			seed.Spec.Provider.Region = ""
+
+			Expect(ValidateSeed(seed)).To(ConsistOfFields(Fields{
+				"Type":  Equal(field.ErrorTypeRequired),
+				"Field": Equal("spec.provider.region"),
+			}))
+		})
+
+		DescribeTable("backup region validation", func(providerType string, region *string, expectError bool) {
+			seed.Spec.Provider.Type = providerType
+			seed.Spec.Backup.Region = region
+
+			if expectError {
+				Expect(ValidateSeed(seed)).To(ConsistOfFields(Fields{
+					"Type":  Equal(field.ErrorTypeInvalid),
+					"Field": Equal("spec.backup.region"),
+				}))
+			} else {
+				Expect(ValidateSeed(seed)).To(BeEmpty())
+			}
+		},
+			Entry("no region required without a seed provider type", "", nil, false),
+			Entry("empty region allowed without a seed provider type", "", new(""), false),
+			Entry("no region required for matching providers", "foo", nil, false),
+			Entry("region required for different providers", "bar", nil, true),
+			Entry("empty region rejected for different providers", "bar", new(""), true),
+			Entry("region allowed for different providers", "bar", new("some-region"), false),
+		)
+
+		It("should still require a backup provider and credentials when the seed provider type is empty", func() {
+			seed.Spec.Provider.Type = ""
+			seed.Spec.Backup.Provider = ""
+			seed.Spec.Backup.Region = nil
+			seed.Spec.Backup.CredentialsRef = nil
+
+			Expect(ValidateSeed(seed)).To(ConsistOfFields(Fields{
+				"Type":  Equal(field.ErrorTypeRequired),
+				"Field": Equal("spec.backup.provider"),
+			}, Fields{
+				"Type":  Equal(field.ErrorTypeRequired),
+				"Field": Equal("spec.backup.credentialsRef"),
+			}))
+		})
+
 		DescribeTable("Seed metadata",
 			func(objectMeta metav1.ObjectMeta, matcher gomegatypes.GomegaMatcher) {
 				seed.ObjectMeta = objectMeta
@@ -279,10 +332,6 @@ var _ = Describe("Seed Validation Tests", func() {
 					"Type":   Equal(field.ErrorTypeRequired),
 					"Field":  Equal("spec.backup.credentialsRef"),
 					"Detail": Equal(`must be set to refer a Secret or WorkloadIdentity`),
-				})),
-				PointTo(MatchFields(IgnoreExtras, Fields{
-					"Type":  Equal(field.ErrorTypeRequired),
-					"Field": Equal("spec.provider.type"),
 				})),
 				PointTo(MatchFields(IgnoreExtras, Fields{
 					"Type":  Equal(field.ErrorTypeRequired),

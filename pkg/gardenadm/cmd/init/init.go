@@ -163,7 +163,8 @@ func RunInitFlow(ctx context.Context, b *gardenadmbotanist.GardenadmBotanist, op
 		)
 		reconcileControlPlane = g.AddGroup(
 			b.ReconcileControlPlaneTaskGroup(false).
-				WithDependencies(gardenadmbotanist.TaskGroupReconcileExtensionControllers),
+				WithDependencies(gardenadmbotanist.TaskGroupReconcileExtensionControllers).
+				SkipIf(b.Shoot.IsSelfHosted() && !b.Shoot.HasManagedInfrastructure()),
 		)
 		syncPointBootstrapped = flow.NewTaskIDs(
 			reconcileNetworkPolicies,

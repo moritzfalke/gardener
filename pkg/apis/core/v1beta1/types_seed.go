@@ -282,9 +282,9 @@ type ShootNetworks struct {
 
 // SeedProvider defines the provider-specific information of this Seed cluster.
 type SeedProvider struct {
-	// Type is the name of the provider.
-	// +required
-	Type string `json:"type" protobuf:"bytes,1,opt,name=type"`
+	// Type is the name of the provider. It is empty for seeds running on unmanaged infrastructure.
+	// +optional
+	Type string `json:"type,omitempty" protobuf:"bytes,1,opt,name=type"`
 	// ProviderConfig is the configuration passed to Seed resource.
 	// +optional
 	ProviderConfig *runtime.RawExtension `json:"providerConfig,omitempty" protobuf:"bytes,2,opt,name=providerConfig"`

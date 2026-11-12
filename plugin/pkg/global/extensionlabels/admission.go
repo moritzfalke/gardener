@@ -260,7 +260,10 @@ func addMetaDataLabelsSeed(seed *core.Seed, controllerRegistrations []*gardencor
 		metav1.SetMetaDataLabel(&seed.ObjectMeta, v1beta1constants.LabelExtensionExtensionTypePrefix+extensionType, "true")
 	}
 
-	metav1.SetMetaDataLabel(&seed.ObjectMeta, v1beta1constants.LabelExtensionProviderTypePrefix+seed.Spec.Provider.Type, "true")
+	// Seeds on unmanaged infrastructure may have no provider type.
+	if seed.Spec.Provider.Type != "" {
+		metav1.SetMetaDataLabel(&seed.ObjectMeta, v1beta1constants.LabelExtensionProviderTypePrefix+seed.Spec.Provider.Type, "true")
+	}
 	if seed.Spec.Backup != nil {
 		metav1.SetMetaDataLabel(&seed.ObjectMeta, v1beta1constants.LabelExtensionProviderTypePrefix+seed.Spec.Backup.Provider, "true")
 	}
@@ -320,7 +323,11 @@ func addMetaDataLabelsShoot(shoot *core.Shoot, controllerRegistrations []*garden
 		}
 	}
 
-	metav1.SetMetaDataLabel(&shoot.ObjectMeta, v1beta1constants.LabelExtensionProviderTypePrefix+shoot.Spec.Provider.Type, "true")
+	// Self-hosted shoots with unmanaged infrastructure may have an empty provider type, in which case no
+	// provider extension label must be set (an empty type would result in an invalid label key).
+	if shoot.Spec.Provider.Type != "" {
+		metav1.SetMetaDataLabel(&shoot.ObjectMeta, v1beta1constants.LabelExtensionProviderTypePrefix+shoot.Spec.Provider.Type, "true")
+	}
 
 	if shoot.Spec.Networking != nil && shoot.Spec.Networking.Type != nil {
 		metav1.SetMetaDataLabel(&shoot.ObjectMeta, v1beta1constants.LabelExtensionNetworkingTypePrefix+*shoot.Spec.Networking.Type, "true")

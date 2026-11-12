@@ -5,15 +5,38 @@
 package v1beta1_test
 
 import (
+	"encoding/json"
 	"reflect"
 	"strings"
 
 	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 
 	. "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 )
 
 var _ = Describe("Seed", func() {
+	Describe("SeedProvider", func() {
+		It("should omit an empty infrastructure provider type from JSON", func() {
+			data, err := json.Marshal(SeedProvider{Region: "local"})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(string(data)).To(MatchJSON(`{"region":"local"}`))
+		})
+
+		It("should preserve an explicitly configured infrastructure provider type", func() {
+			data, err := json.Marshal(SeedProvider{Type: "local", Region: "local"})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(string(data)).To(MatchJSON(`{"type":"local","region":"local"}`))
+		})
+
+		It("should decode an omitted infrastructure provider type as empty", func() {
+			var provider SeedProvider
+			Expect(json.Unmarshal([]byte(`{"region":"local"}`), &provider)).To(Succeed())
+			Expect(provider.Type).To(BeEmpty())
+			Expect(provider.Region).To(Equal("local"))
+		})
+	})
+
 	Describe("SeedSpec", func() {
 		It("should not allow to reuse protobuf numbers of already removed fields", func() {
 			obj := reflect.ValueOf(SeedSpec{}).Type()

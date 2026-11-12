@@ -373,7 +373,7 @@ var _ = Describe("#Gardenlet Chart Test", func() {
 						Provider: gardencorev1beta1.SeedProvider{},
 					},
 				},
-			}, nil, nil, nil, nil, nil, false, map[string]string{"gardenlet-configmap": "gardenlet-configmap-508850cc"}),
+			}, nil, nil, nil, nil, nil, false, map[string]string{"gardenlet-configmap": "gardenlet-configmap-9d6ee741"}),
 		Entry("verify deployment with two replica and three zones", nil, nil, nil, nil, nil,
 			&gardenletconfigv1alpha1.SeedConfig{
 				SeedTemplate: gardencorev1beta1.SeedTemplate{
@@ -388,7 +388,7 @@ var _ = Describe("#Gardenlet Chart Test", func() {
 				},
 			}, &seedmanagement.GardenletDeployment{
 				ReplicaCount: new(int32(2)),
-			}, nil, nil, nil, nil, false, map[string]string{"gardenlet-configmap": "gardenlet-configmap-5da1b92c"}),
+			}, nil, nil, nil, nil, false, map[string]string{"gardenlet-configmap": "gardenlet-configmap-4adcd1b2"}),
 		Entry("verify deployment with only one replica", nil, nil, nil, nil, nil,
 			&gardenletconfigv1alpha1.SeedConfig{
 				SeedTemplate: gardencorev1beta1.SeedTemplate{
@@ -403,7 +403,7 @@ var _ = Describe("#Gardenlet Chart Test", func() {
 				},
 			}, &seedmanagement.GardenletDeployment{
 				ReplicaCount: new(int32(1)),
-			}, nil, nil, nil, nil, false, map[string]string{"gardenlet-configmap": "gardenlet-configmap-5da1b92c"}),
+			}, nil, nil, nil, nil, false, map[string]string{"gardenlet-configmap": "gardenlet-configmap-4adcd1b2"}),
 		Entry("verify deployment with only one zone", nil, nil, nil, nil, nil,
 			&gardenletconfigv1alpha1.SeedConfig{
 				SeedTemplate: gardencorev1beta1.SeedTemplate{
@@ -416,7 +416,7 @@ var _ = Describe("#Gardenlet Chart Test", func() {
 						},
 					},
 				},
-			}, nil, nil, nil, nil, nil, false, map[string]string{"gardenlet-configmap": "gardenlet-configmap-8e5c55ee"}),
+			}, nil, nil, nil, nil, nil, false, map[string]string{"gardenlet-configmap": "gardenlet-configmap-3e313e7c"}),
 		Entry("verify deployment with image vector override", nil, nil, nil, nil, nil, nil, nil, new("dummy-override-content"), nil, nil, nil, false, map[string]string{
 			"gardenlet-configmap":             "gardenlet-configmap-d392f02b",
 			"gardenlet-imagevector-overwrite": "gardenlet-imagevector-overwrite-32ecb769",
