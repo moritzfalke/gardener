@@ -260,7 +260,10 @@ func addMetaDataLabelsSeed(seed *core.Seed, controllerRegistrations []*gardencor
 		metav1.SetMetaDataLabel(&seed.ObjectMeta, v1beta1constants.LabelExtensionExtensionTypePrefix+extensionType, "true")
 	}
 
-	metav1.SetMetaDataLabel(&seed.ObjectMeta, v1beta1constants.LabelExtensionProviderTypePrefix+seed.Spec.Provider.Type, "true")
+	// Seeds on unmanaged infrastructure may have no provider type.
+	if seed.Spec.Provider.Type != "" {
+		metav1.SetMetaDataLabel(&seed.ObjectMeta, v1beta1constants.LabelExtensionProviderTypePrefix+seed.Spec.Provider.Type, "true")
+	}
 	if seed.Spec.Backup != nil {
 		metav1.SetMetaDataLabel(&seed.ObjectMeta, v1beta1constants.LabelExtensionProviderTypePrefix+seed.Spec.Backup.Provider, "true")
 	}

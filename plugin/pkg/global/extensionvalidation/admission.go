@@ -243,12 +243,14 @@ func (e *ExtensionValidator) validateBackupEntry(kindToExtensions map[string][]e
 
 func (e *ExtensionValidator) validateSeed(kindToExtensions map[string][]extension, spec core.SeedSpec) error {
 	var (
-		message = "given Seed uses non-registered"
-
-		requiredExtensions = requiredExtensions{
-			{extensionsv1alpha1.ControlPlaneResource, spec.Provider.Type, fmt.Sprintf("%s provider type", message), field.NewPath("spec", "provider", "type")},
-		}
+		message            = "given Seed uses non-registered"
+		requiredExtensions = requiredExtensions{}
 	)
+
+	// Seeds on unmanaged infrastructure do not require a ControlPlane extension.
+	if spec.Provider.Type != "" {
+		requiredExtensions = append(requiredExtensions, requiredExtension{extensionsv1alpha1.ControlPlaneResource, spec.Provider.Type, fmt.Sprintf("%s provider type", message), field.NewPath("spec", "provider", "type")})
+	}
 
 	if spec.Backup != nil {
 		msg := fmt.Sprintf("%s backup provider type", message)
@@ -281,12 +283,8 @@ func (e *ExtensionValidator) validateShoot(kindToExtensions map[string][]extensi
 	)
 
 	if !workerless {
-		// Self-hosted shoots with unmanaged infrastructure do not have Infrastructure, Worker and ControlPlane Resources
-		// so their extensions are not required.
-		selfHostedUnmanagedInfra := gardencorehelper.IsShootSelfHosted(spec.Provider.Workers) &&
-			spec.CredentialsBindingName == nil && spec.SecretBindingName == nil
-
-		if !selfHostedUnmanagedInfra {
+		// Seeds on unmanaged infrastructure do not require provider extensions for ControlPlane, Infrastrucure and Worker resources.
+		if !gardencorehelper.IsShootUnmanagedSelfHosted(&core.Shoot{Spec: spec}) {
 			requiredExtensions = append(requiredExtensions,
 				requiredExtension{extensionsv1alpha1.ControlPlaneResource, spec.Provider.Type, providerTypeMsg, fldPath},
 				requiredExtension{extensionsv1alpha1.InfrastructureResource, spec.Provider.Type, providerTypeMsg, fldPath},

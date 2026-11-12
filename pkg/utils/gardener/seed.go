@@ -84,10 +84,12 @@ func ComputeRequiredExtensionsForSeed(seed *gardencorev1beta1.Seed, controllerRe
 		wantedKindTypeCombinations.Insert(ExtensionsID(extensionsv1alpha1.ExtensionResource, enabledExtensionType))
 	}
 
-	// add extension combinations for seed provider type
-	wantedKindTypeCombinations.Insert(ExtensionsID(extensionsv1alpha1.ControlPlaneResource, seed.Spec.Provider.Type))
-	wantedKindTypeCombinations.Insert(ExtensionsID(extensionsv1alpha1.InfrastructureResource, seed.Spec.Provider.Type))
-	wantedKindTypeCombinations.Insert(ExtensionsID(extensionsv1alpha1.WorkerResource, seed.Spec.Provider.Type))
+	// Seeds on unmanaged infrastructure do not require provider extensions for ControlPlane, Infrastrucure and Worker resources.
+	if seed.Spec.Provider.Type != "" {
+		wantedKindTypeCombinations.Insert(ExtensionsID(extensionsv1alpha1.ControlPlaneResource, seed.Spec.Provider.Type))
+		wantedKindTypeCombinations.Insert(ExtensionsID(extensionsv1alpha1.InfrastructureResource, seed.Spec.Provider.Type))
+		wantedKindTypeCombinations.Insert(ExtensionsID(extensionsv1alpha1.WorkerResource, seed.Spec.Provider.Type))
+	}
 
 	return wantedKindTypeCombinations
 }

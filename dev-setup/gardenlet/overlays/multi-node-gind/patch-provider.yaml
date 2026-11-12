@@ -1,0 +1,13 @@
+apiVersion: seedmanagement.gardener.cloud/v1alpha1
+kind: ManagedSeed
+metadata:
+  name: root
+  namespace: garden
+spec:
+  gardenlet:
+    config:
+      seedConfig:
+        spec:
+          provider:
+            # Self-hosted shoots with unmanaged infrastructure have no provider type.
+            type: null

@@ -87,9 +87,8 @@ func ValidateSeedSpec(seedSpec *core.SeedSpec, fldPath *field.Path, inTemplate b
 	allErrs := field.ErrorList{}
 
 	providerPath := fldPath.Child("provider")
-	if !inTemplate && len(seedSpec.Provider.Type) == 0 {
-		allErrs = append(allErrs, field.Required(providerPath.Child("type"), "must provide a provider type"))
-	}
+	// Seeds on unmanaged infrastructure do not have a provider type.
+	// For ManagedSeeds, admission validates whether the type must be empty or set based on the backing Shoot.
 	if !inTemplate && len(seedSpec.Provider.Region) == 0 {
 		allErrs = append(allErrs, field.Required(providerPath.Child("region"), "must provide a provider region"))
 	}
@@ -283,7 +282,8 @@ func validateSeedBackup(seedBackup *core.Backup, seedProviderType string, fldPat
 		allErrs = append(allErrs, field.Required(fldPath.Child("provider"), "must provide a backup cloud provider name"))
 	}
 
-	if seedProviderType != seedBackup.Provider && (seedBackup.Region == nil || len(*seedBackup.Region) == 0) {
+	// Seeds on unmanaged infrastructure do not have a provider type so it cannot be compared to the backup provider.
+	if len(seedProviderType) > 0 && seedProviderType != seedBackup.Provider && (seedBackup.Region == nil || len(*seedBackup.Region) == 0) {
 		allErrs = append(allErrs, field.Invalid(fldPath.Child("region"), "", "region must be specified for if backup provider is different from seed provider used in `spec.provider.type`"))
 	}
 

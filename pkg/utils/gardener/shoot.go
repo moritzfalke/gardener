@@ -737,7 +737,8 @@ func ComputeRequiredExtensionsForShoot(shoot *gardencorev1beta1.Shoot, seed *gar
 		requiredExtensions.Insert(ExtensionsID(extensionsv1alpha1.BackupEntryResource, backupConfig.Provider))
 	}
 
-	if seed != nil {
+	// Seeds on unmanaged infrastructure do not require provider extensions ControlPlane resources.
+	if seed != nil && seed.Spec.Provider.Type != "" {
 		// Hint: This is actually a temporary work-around to request the control plane extension of the seed provider type as
 		// it might come with webhooks that are configuring the exposure of shoot control planes. The ControllerRegistration resource
 		// does not reflect this today.
@@ -745,9 +746,8 @@ func ComputeRequiredExtensionsForShoot(shoot *gardencorev1beta1.Shoot, seed *gar
 	}
 
 	if !v1beta1helper.IsWorkerless(shoot) {
-		// Self-hosted shoots with unmanaged infrastructure do not have Infrastructure, Worker and ControlPlane resources
-		// so their extensions are not required.
-		if !v1beta1helper.IsShootSelfHosted(shoot.Spec.Provider.Workers) && !v1beta1helper.HasManagedInfrastructure(shoot) {
+		// Seeds on unmanaged infrastructure do not require provider extensions for ControlPlane, Infrastrucure and Worker resources.
+		if !v1beta1helper.IsShootUnmanagedSelfHosted(shoot) {
 			requiredExtensions.Insert(ExtensionsID(extensionsv1alpha1.ControlPlaneResource, shoot.Spec.Provider.Type))
 			requiredExtensions.Insert(ExtensionsID(extensionsv1alpha1.InfrastructureResource, shoot.Spec.Provider.Type))
 			requiredExtensions.Insert(ExtensionsID(extensionsv1alpha1.WorkerResource, shoot.Spec.Provider.Type))
