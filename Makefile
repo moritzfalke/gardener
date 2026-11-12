@@ -315,6 +315,13 @@ kind2-down: kind-single-node2-down
 gind-up gind-down: $(KIND) $(YQ)
 	$(DEV_SETUP)/gind.sh $(subst gind-,,$@)
 
+# Deploy local storage into an already bootstrapped self-hosted GinD cluster.
+.PHONY: gind-storage-up
+gind-storage-up: export KUBECONFIG = $(KUBECONFIG_SELFHOSTEDSHOOT_CLUSTER)
+gind-storage-up: export SKAFFOLD_FILENAME = $(DEV_SETUP)/skaffold-storage-local.yaml
+gind-storage-up: $(SKAFFOLD) $(HELM) $(KUBECTL) $(YQ)
+	bash $(DEV_SETUP)/gind/deploy-storage.sh
+
 # gink-{up,down}
 gink-up gink-down: $(YQ)
 	$(DEV_SETUP)/gink.sh $(subst gink-,,$@)

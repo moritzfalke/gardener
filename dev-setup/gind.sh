@@ -81,6 +81,9 @@ case "$COMMAND" in
       cp "$KUBECONFIG_SELFHOSTEDSHOOT_CLUSTER" "$(dirname "$0")/gardenconfig/components/credentials/secret-project-garden/kubeconfig/kubeconfig"
       cp "$KUBECONFIG_SELFHOSTEDSHOOT_CLUSTER" "$(dirname "$0")/gardenconfig/components/credentials/secret-project-local/kubeconfig/kubeconfig"
 
+      # Deploy local storage before Gardener components create PersistentVolumeClaims.
+      make gind-storage-up KUBECONFIG="$KUBECONFIG_SELFHOSTEDSHOOT_CLUSTER"
+
       # deploy the cloud controller manager to reconcile LocalLoadbalancers.
       make cloud-provider-local-up SCENARIO=unmanaged-infra KUBECONFIG="$KUBECONFIG_SELFHOSTEDSHOOT_CLUSTER"
     fi

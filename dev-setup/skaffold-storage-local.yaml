@@ -1,0 +1,18 @@
+apiVersion: skaffold/v4beta12
+kind: Config
+metadata:
+  name: storage-local
+deploy:
+  helm:
+    releases:
+      - name: local-path-provisioner
+        chartPath: pkg/provider-local/charts/shoot-system-components/charts/local-path-provisioner
+        namespace: kube-system
+        valuesFiles:
+          - dev-setup/gind/local-path-provisioner.yaml
+        setValueTemplates:
+          images.local-path-provisioner: '{{.LOCAL_PATH_PROVISIONER_IMAGE}}'
+          images.local-path-helper: '{{.LOCAL_PATH_HELPER_IMAGE}}'
+      - name: shoot-storageclasses
+        chartPath: pkg/provider-local/charts/shoot-storageclasses
+        namespace: kube-system
