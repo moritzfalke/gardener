@@ -544,7 +544,9 @@ func determineCandidatesOfSameProvider(seedList []gardencorev1beta1.Seed, shoot 
 func determineCandidatesWithSameRegionStrategy(seedList []gardencorev1beta1.Seed, shoot *gardencorev1beta1.Shoot) []gardencorev1beta1.Seed {
 	var candidates []gardencorev1beta1.Seed
 	for _, seed := range seedList {
-		if seed.Spec.Provider.Type == shoot.Spec.Provider.Type && seed.Spec.Provider.Region == shoot.Spec.Region {
+		// Seeds on unmanaged infrastructure have an empty provider type.
+		// As the match to the CloudProfile was already verified, matching the region is sufficient.
+		if (seed.Spec.Provider.Type == "" || seed.Spec.Provider.Type == shoot.Spec.Provider.Type) && seed.Spec.Provider.Region == shoot.Spec.Region {
 			candidates = append(candidates, seed)
 		}
 	}

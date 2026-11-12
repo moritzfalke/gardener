@@ -164,6 +164,55 @@ var _ = Describe("Scheduler_Control", func() {
 			Expect(bestSeed.Name).To(Equal(seed.Name))
 		})
 
+		It("should select a seed without a provider type when the cloud profile allows any provider", func() {
+			seed.Spec.Provider.Type = ""
+			cloudProfile.Spec.SeedSelector = &gardencorev1beta1.SeedSelector{ProviderTypes: []string{"*"}}
+
+			Expect(fakeGardenClient.Create(ctx, cloudProfile)).To(Succeed())
+			Expect(fakeGardenClient.Create(ctx, project)).To(Succeed())
+			Expect(fakeGardenClient.Create(ctx, seed)).To(Succeed())
+
+			bestSeed, err := reconciler.DetermineSeed(ctx, log, shoot)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(bestSeed.Name).To(Equal(seed.Name))
+		})
+
+		It("should still reject a seed without a provider type when cross-provider scheduling is not enabled", func() {
+			seed.Spec.Provider.Type = ""
+
+			Expect(fakeGardenClient.Create(ctx, cloudProfile)).To(Succeed())
+			Expect(fakeGardenClient.Create(ctx, project)).To(Succeed())
+			Expect(fakeGardenClient.Create(ctx, seed)).To(Succeed())
+
+			_, err := reconciler.DetermineSeed(ctx, log, shoot)
+			Expect(err).To(MatchError(ContainSubstring("none out of the 1 seeds has a matching provider")))
+		})
+
+		It("should still reject a provider-less seed in a different region with the SameRegion strategy", func() {
+			seed.Spec.Provider.Type = ""
+			seed.Spec.Provider.Region = "another-region"
+			cloudProfile.Spec.SeedSelector = &gardencorev1beta1.SeedSelector{ProviderTypes: []string{"*"}}
+
+			Expect(fakeGardenClient.Create(ctx, cloudProfile)).To(Succeed())
+			Expect(fakeGardenClient.Create(ctx, project)).To(Succeed())
+			Expect(fakeGardenClient.Create(ctx, seed)).To(Succeed())
+
+			_, err := reconciler.DetermineSeed(ctx, log, shoot)
+			Expect(err).To(MatchError(ContainSubstring("no matching seed candidate found")))
+		})
+
+		It("should preserve the SameRegion provider requirement for seeds with an explicit provider type", func() {
+			seed.Spec.Provider.Type = "another-provider"
+			cloudProfile.Spec.SeedSelector = &gardencorev1beta1.SeedSelector{ProviderTypes: []string{"*"}}
+
+			Expect(fakeGardenClient.Create(ctx, cloudProfile)).To(Succeed())
+			Expect(fakeGardenClient.Create(ctx, project)).To(Succeed())
+			Expect(fakeGardenClient.Create(ctx, seed)).To(Succeed())
+
+			_, err := reconciler.DetermineSeed(ctx, log, shoot)
+			Expect(err).To(MatchError(ContainSubstring("no matching seed candidate found")))
+		})
+
 		It("should find the best seed cluster 1) 'Same Region' seed determination strategy 2) referencing the same profile 3) same region 4) indicating availability", func() {
 			secondSeed := seedBase
 			secondSeed.Name = "seed-2"
