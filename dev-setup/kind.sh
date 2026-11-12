@@ -311,7 +311,7 @@ EOF
     echo "Kubelet Serving Certificate Signing Requests approved."
 
     # Automatically start cloud-provider-local on kind cluster
-    make cloud-provider-local-up
+    make cloud-provider-local-up SCENARIO=kind
     ;;
 
   down)
