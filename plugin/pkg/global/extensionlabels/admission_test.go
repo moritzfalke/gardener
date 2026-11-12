@@ -11,6 +11,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apiserver/pkg/admission"
 
 	"github.com/gardener/gardener/pkg/apis/core"
@@ -149,6 +150,41 @@ var _ = Describe("ExtensionLabels tests", func() {
 
 			Expect(newSeed.ObjectMeta.Labels).To(Equal(expectedLabels))
 		})
+
+		DescribeTable("should omit the infrastructure provider label when the seed provider type is empty", func(operation admission.Operation, withBackup bool) {
+			var oldSeed runtime.Object
+			if operation == admission.Update {
+				oldSeed = seed.DeepCopy()
+			}
+			seed.Spec.Provider.Type = ""
+			if !withBackup {
+				seed.Spec.Backup = nil
+			}
+			seed.Labels = map[string]string{
+				"provider.extensions.gardener.cloud/":                 "true",
+				"provider.extensions.gardener.cloud/" + providerType1: "true",
+				"custom-label": "preserved",
+			}
+
+			attrs := admission.NewAttributesRecord(seed, oldSeed, core.Kind("Seed").WithVersion("version"), "", seed.Name, core.Resource("Seed").WithVersion("version"), "", operation, nil, false, nil)
+			Expect(admissionHandler.Admit(context.TODO(), attrs, nil)).To(Succeed())
+
+			expectedLabels := map[string]string{
+				"dnsrecord.extensions.gardener.cloud/" + dnsProviderType: "true",
+				"extensions.extensions.gardener.cloud/" + extensionType1: "true",
+				"extensions.extensions.gardener.cloud/" + extensionType2: "true",
+				"custom-label": "preserved",
+			}
+			if withBackup {
+				expectedLabels["provider.extensions.gardener.cloud/"+providerType1] = "true"
+			}
+			Expect(seed.Labels).To(Equal(expectedLabels))
+		},
+			Entry("creation without backup", admission.Create, false),
+			Entry("creation with backup", admission.Create, true),
+			Entry("update without backup", admission.Update, false),
+			Entry("update with backup", admission.Update, true),
+		)
 	})
 
 	Context("SecretBinding", func() {

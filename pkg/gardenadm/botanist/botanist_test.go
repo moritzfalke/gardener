@@ -76,14 +76,15 @@ var _ = Describe("GardenadmBotanist", func() {
 		When("running the control plane (acting on the self-hosted shoot cluster)", func() {
 			Context("with unmanaged infrastructure", func() {
 				It("should create a new Self-Hosted Botanist", func() {
-					b, err := NewGardenadmBotanistFromResources(ctx, log, nil, readResources(), true)
+					resources := readResources()
+					resources.Shoot.Spec.Provider.Type = ""
+					b, err := NewGardenadmBotanistFromResources(ctx, log, nil, resources, true)
 					Expect(err).NotTo(HaveOccurred())
 
 					Expect(b.Shoot.CloudProfile.Name).To(Equal("stackit"))
 					Expect(b.Shoot.GetInfo().Name).To(Equal("gardenadm"))
 					Expect(b.Garden.Project.Name).To(Equal("gardenadm"))
 					Expect(b.Extensions).To(ConsistOf(
-						HaveField("ControllerRegistration.Name", "provider-stackit"),
 						HaveField("ControllerRegistration.Name", "networking-cilium"),
 					))
 					Expect(b.Seed).To(BeNil())
@@ -193,6 +194,11 @@ metadata:
 		})
 
 		When("not running the control plane (acting on the bootstrap cluster)", func() {
+			BeforeEach(func() {
+				shootFile := fsys[configDir+"/shoot.yaml"]
+				shootFile.Data = append(shootFile.Data, []byte("\n  credentialsBindingName: provider-account\n")...)
+			})
+
 			It("should create a new Self-Hosted Botanist", func() {
 				b, err := NewGardenadmBotanistFromResources(ctx, log, nil, readResources(), false)
 				Expect(err).NotTo(HaveOccurred())

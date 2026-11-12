@@ -835,6 +835,62 @@ var _ = Describe("ManagedSeed", func() {
 				Expect(err).NotTo(HaveOccurred())
 			})
 
+			DescribeTable("should validate the seed provider type according to the backing shoot", func(selfHosted, managedInfrastructure bool, seedProviderType string, expectedErrorType field.ErrorType) {
+				if selfHosted {
+					shoot.Spec.Provider.Workers[0].ControlPlane = &gardencorev1beta1.WorkerControlPlane{}
+				}
+				if managedInfrastructure {
+					shoot.Spec.CredentialsBindingName = new("credentials")
+				} else if selfHosted {
+					shoot.Spec.Provider.Type = ""
+				}
+				gardenletConfig := managedSeed.Spec.Gardenlet.Config.(*gardenletconfigv1alpha1.GardenletConfiguration)
+				gardenletConfig.SeedConfig.Spec.Provider.Type = seedProviderType
+
+				err := admissionHandler.Validate(ctx, getManagedSeedAttributes(managedSeed), nil)
+				if expectedErrorType == "" {
+					Expect(err).NotTo(HaveOccurred())
+				} else {
+					Expect(err).To(BeInvalidError())
+					Expect(getErrorList(err)).To(ConsistOf(
+						PointTo(MatchFields(IgnoreExtras, Fields{
+							"Type":  Equal(expectedErrorType),
+							"Field": Equal("spec.gardenlet.config.seedConfig.spec.provider.type"),
+						})),
+					))
+				}
+			},
+				Entry("unmanaged self-hosted shoot requires an empty provider type", true, false, "", field.ErrorType("")),
+				Entry("unmanaged self-hosted shoot forbids a provider type", true, false, provider, field.ErrorTypeForbidden),
+				Entry("managed self-hosted shoot requires a provider type", true, true, "", field.ErrorTypeRequired),
+				Entry("managed self-hosted shoot accepts its provider type", true, true, provider, field.ErrorType("")),
+				Entry("hosted shoot requires a provider type", false, true, "", field.ErrorTypeRequired),
+				Entry("hosted shoot accepts its provider type", false, true, provider, field.ErrorType("")),
+				Entry("hosted shoot rejects a different provider type", false, true, "another-provider", field.ErrorTypeInvalid),
+			)
+
+			It("should default an omitted seed provider type from a managed self-hosted shoot", func() {
+				shoot.Spec.Provider.Workers[0].ControlPlane = &gardencorev1beta1.WorkerControlPlane{}
+				shoot.Spec.CredentialsBindingName = new("credentials")
+				gardenletConfig := managedSeed.Spec.Gardenlet.Config.(*gardenletconfigv1alpha1.GardenletConfiguration)
+				gardenletConfig.SeedConfig.Spec.Provider.Type = ""
+
+				Expect(admissionHandler.Admit(ctx, getManagedSeedAttributes(managedSeed), nil)).To(Succeed())
+				Expect(gardenletConfig.SeedConfig.Spec.Provider.Type).To(Equal(provider))
+				Expect(admissionHandler.Validate(ctx, getManagedSeedAttributes(managedSeed), nil)).To(Succeed())
+			})
+
+			It("should leave the seed provider type empty when defaulting from an unmanaged self-hosted shoot", func() {
+				shoot.Spec.Provider.Workers[0].ControlPlane = &gardencorev1beta1.WorkerControlPlane{}
+				shoot.Spec.Provider.Type = ""
+				gardenletConfig := managedSeed.Spec.Gardenlet.Config.(*gardenletconfigv1alpha1.GardenletConfiguration)
+				gardenletConfig.SeedConfig.Spec.Provider.Type = ""
+
+				Expect(admissionHandler.Admit(ctx, getManagedSeedAttributes(managedSeed), nil)).To(Succeed())
+				Expect(gardenletConfig.SeedConfig.Spec.Provider.Type).To(BeEmpty())
+				Expect(admissionHandler.Validate(ctx, getManagedSeedAttributes(managedSeed), nil)).To(Succeed())
+			})
+
 			It("should forbid the ManagedSeed creation if the seed spec contains invalid values", func() {
 				seedSpec := gardencorev1beta1.SeedSpec{
 					Ingress: &gardencorev1beta1.Ingress{

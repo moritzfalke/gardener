@@ -57,6 +57,7 @@ var _ = Describe("Extensions", func() {
 		BeforeEach(func() {
 			shoot = &gardencorev1beta1.Shoot{
 				Spec: gardencorev1beta1.ShootSpec{
+					CredentialsBindingName: new("credentials"),
 					Provider: gardencorev1beta1.Provider{
 						Type: "ext1",
 						Workers: []gardencorev1beta1.Worker{{
@@ -254,7 +255,7 @@ var _ = Describe("Extensions", func() {
 		})
 
 		It("should correctly construct the ControllerInstallation", func() {
-			Expect(ComputeExtensions(resources, true, false)).To(ContainElement(
+			Expect(ComputeExtensions(resources, true, true)).To(ContainElement(
 				HaveField("ControllerInstallation", And(
 					HaveField("ObjectMeta.Name", controllerRegistrationControlPlane.Name),
 					HaveField("Spec.RegistrationRef.Name", controllerRegistrationControlPlane.Name),
@@ -267,12 +268,13 @@ var _ = Describe("Extensions", func() {
 
 		When("running the control plane (gardenadm init)", func() {
 			When("infrastructure is not managed by Gardener", func() {
-				It("should return all extensions referenced by shoot (except Infrastructure, Worker, and DNSRecord)", func() {
+				BeforeEach(func() {
+					shoot.Spec.CredentialsBindingName = nil
+					shoot.Spec.Provider.Type = ""
+				})
+
+				It("should return all extensions referenced by shoot (except ControlPlane, Infrastructure, Worker, and DNSRecord)", func() {
 					Expect(ComputeExtensions(resources, true, false)).To(ConsistOf(
-						And(
-							HaveField("ControllerRegistration.Name", controllerRegistrationControlPlane.Name),
-							HaveField("ControllerDeployment.Name", controllerDeploymentControlPlane.Name),
-						),
 						And(
 							HaveField("ControllerRegistration.Name", controllerRegistrationOSC.Name),
 							HaveField("ControllerDeployment.Name", controllerDeploymentOSC.Name),

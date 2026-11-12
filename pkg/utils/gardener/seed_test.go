@@ -492,6 +492,39 @@ var _ = Describe("utils", func() {
 			))
 		})
 
+		When("seed has no provider type", func() {
+			BeforeEach(func() {
+				seed.Spec.Provider.Type = ""
+			})
+
+			It("should omit provider-specific extensions and retain auto-enabled extensions", func() {
+				Expect(ComputeRequiredExtensionsForSeed(seed, controllerRegistrationList).UnsortedList()).To(ConsistOf(
+					"Extension/extension1",
+					"Extension/extension3",
+				))
+			})
+
+			It("should retain the configured DNS provider and explicitly enabled extensions", func() {
+				seed.Spec.DNS.Provider = &gardencorev1beta1.SeedDNSProvider{Type: "providerB"}
+				seed.Spec.Extensions = []gardencorev1beta1.Extension{{Type: "extensionA"}}
+
+				Expect(ComputeRequiredExtensionsForSeed(seed, controllerRegistrationList).UnsortedList()).To(ConsistOf(
+					"DNSRecord/providerB",
+					"Extension/extensionA",
+					"Extension/extension1",
+					"Extension/extension3",
+				))
+			})
+
+			It("should still exclude explicitly disabled extensions", func() {
+				seed.Spec.Extensions = []gardencorev1beta1.Extension{{Type: "extension3", Disabled: new(true)}}
+
+				Expect(ComputeRequiredExtensionsForSeed(seed, controllerRegistrationList).UnsortedList()).To(ConsistOf(
+					"Extension/extension1",
+				))
+			})
+		})
+
 		When("seed has DNS provider", func() {
 			BeforeEach(func() {
 				seed.Spec.DNS = gardencorev1beta1.SeedDNS{

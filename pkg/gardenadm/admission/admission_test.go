@@ -115,7 +115,6 @@ var _ = Describe("RunAdmissionChain", func() {
 					Services: new("100.64.0.0/13"),
 				},
 				Provider: gardencorev1beta1.Provider{
-					Type: "local",
 					Workers: []gardencorev1beta1.Worker{
 						{
 							Name: "worker",
@@ -201,6 +200,13 @@ var _ = Describe("RunAdmissionChain", func() {
 
 	It("should succeed for a valid minimal Shoot", func(ctx SpecContext) {
 		Expect(RunAdmissionChain(ctx, log, resources)).To(Succeed())
+	})
+
+	It("should succeed without provider extensions for an unmanaged self-hosted Shoot", func(ctx SpecContext) {
+		resources.ControllerRegistrations = resources.ControllerRegistrations[1:]
+
+		Expect(RunAdmissionChain(ctx, log, resources)).To(Succeed())
+		Expect(resources.Shoot.Spec.Provider.Type).To(BeEmpty())
 	})
 
 	It("should set VPA enabled by default after running the chain", func(ctx SpecContext) {

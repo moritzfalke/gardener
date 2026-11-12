@@ -1829,6 +1829,25 @@ var _ = Describe("Shoot", func() {
 			)))
 		})
 
+		It("should omit the seed ControlPlane extension for an empty seed provider type", func() {
+			seed.Spec.Provider.Type = ""
+
+			Expect(ComputeRequiredExtensionsForShoot(shoot, seed, controllerRegistrationList, internalDomain, externalDomain)).To(Equal(sets.New(
+				ExtensionsID(extensionsv1alpha1.BackupBucketResource, backupProvider),
+				ExtensionsID(extensionsv1alpha1.BackupEntryResource, backupProvider),
+				ExtensionsID(extensionsv1alpha1.ControlPlaneResource, shootProvider),
+				ExtensionsID(extensionsv1alpha1.InfrastructureResource, shootProvider),
+				ExtensionsID(extensionsv1alpha1.NetworkResource, networkingType),
+				ExtensionsID(extensionsv1alpha1.WorkerResource, shootProvider),
+				ExtensionsID(extensionsv1alpha1.ExtensionResource, extensionType1),
+				ExtensionsID(extensionsv1alpha1.OperatingSystemConfigResource, oscType),
+				ExtensionsID(extensionsv1alpha1.ContainerRuntimeResource, containerRuntimeType),
+				ExtensionsID(extensionsv1alpha1.DNSRecordResource, dnsProviderType1),
+				ExtensionsID(extensionsv1alpha1.DNSRecordResource, dnsProviderType2),
+				ExtensionsID(extensionsv1alpha1.ExtensionResource, extensionType2),
+			)))
+		})
+
 		It("should compute the correct list of required extensions (no seed backup)", func() {
 			seed.Spec.Backup = nil
 
@@ -1965,7 +1984,28 @@ var _ = Describe("Shoot", func() {
 			)))
 		})
 
+		It("should omit provider-specific extensions for an unmanaged self-hosted shoot and seed", func() {
+			shoot.Spec.Provider.Type = ""
+			seed.Spec.Provider.Type = ""
+			shoot.Spec.Provider.Workers[0].ControlPlane = &gardencorev1beta1.WorkerControlPlane{
+				Backup: &gardencorev1beta1.Backup{Provider: backupProvider},
+			}
+
+			Expect(ComputeRequiredExtensionsForShoot(shoot, seed, controllerRegistrationList, internalDomain, externalDomain)).To(Equal(sets.New(
+				ExtensionsID(extensionsv1alpha1.BackupBucketResource, backupProvider),
+				ExtensionsID(extensionsv1alpha1.BackupEntryResource, backupProvider),
+				ExtensionsID(extensionsv1alpha1.NetworkResource, networkingType),
+				ExtensionsID(extensionsv1alpha1.ExtensionResource, extensionType1),
+				ExtensionsID(extensionsv1alpha1.OperatingSystemConfigResource, oscType),
+				ExtensionsID(extensionsv1alpha1.ContainerRuntimeResource, containerRuntimeType),
+				ExtensionsID(extensionsv1alpha1.DNSRecordResource, dnsProviderType1),
+				ExtensionsID(extensionsv1alpha1.DNSRecordResource, dnsProviderType2),
+				ExtensionsID(extensionsv1alpha1.ExtensionResource, extensionType2),
+			)))
+		})
+
 		It("should compute the correct list of required extensions (self-hosted shoot with backup)", func() {
+			shoot.Spec.CredentialsBindingName = new("credentials")
 			shoot.Spec.Provider.Workers = append(shoot.Spec.Provider.Workers, gardencorev1beta1.Worker{
 				ControlPlane: &gardencorev1beta1.WorkerControlPlane{Backup: &gardencorev1beta1.Backup{Provider: backupProvider}},
 			})
@@ -1987,6 +2027,7 @@ var _ = Describe("Shoot", func() {
 		})
 
 		It("should compute the correct list of required extensions (self-hosted shoot with exposure)", func() {
+			shoot.Spec.CredentialsBindingName = new("credentials")
 			exposureType := "stackit"
 			shoot.Spec.Provider.Workers = append(shoot.Spec.Provider.Workers, gardencorev1beta1.Worker{
 				ControlPlane: &gardencorev1beta1.WorkerControlPlane{

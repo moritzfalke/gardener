@@ -1931,6 +1931,7 @@ var _ = Describe("Shoot Validation Tests", func() {
 					})
 					shoot.Spec.SecretBindingName = nil
 					shoot.Spec.CredentialsBindingName = nil
+					shoot.Spec.Provider.Type = ""
 
 					Expect(ValidateShoot(shoot)).To(BeEmpty())
 				})
