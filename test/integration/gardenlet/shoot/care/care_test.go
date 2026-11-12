@@ -603,7 +603,6 @@ var _ = Describe("Shoot Care controller tests (self-hosted shoot)", func() {
 				CloudProfileName: new("cloudprofile1"),
 				Region:           "europe-central-1",
 				Provider: gardencorev1beta1.Provider{
-					Type: "foo-provider",
 					Workers: []gardencorev1beta1.Worker{
 						{
 							Name:    "cp-worker",

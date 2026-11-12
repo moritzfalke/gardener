@@ -560,6 +560,7 @@ var _ = Describe("ControllerInstallation-Seed controller test", func() {
 					Labels:    map[string]string{testID: testRunID},
 				},
 				Spec: gardencorev1beta1.ShootSpec{
+					CredentialsBindingName: new("test-credentials"),
 					CloudProfile: &gardencorev1beta1.CloudProfileReference{
 						Kind: "CloudProfile",
 						Name: "test-cloudprofile",

@@ -225,7 +225,7 @@ var _ = BeforeSuite(func() {
 			Region:       "test-region",
 			Networking:   &gardencorev1beta1.Networking{Type: new("test-networking")},
 			Kubernetes:   gardencorev1beta1.Kubernetes{Version: "1.37.0"},
-			Provider:     gardencorev1beta1.Provider{Type: "test-provider", Workers: workers},
+			Provider:     gardencorev1beta1.Provider{Workers: workers},
 		},
 	}
 	Expect(gardenClient.Create(ctx, testShoot)).To(Succeed())

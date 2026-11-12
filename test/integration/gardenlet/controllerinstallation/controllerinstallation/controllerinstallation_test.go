@@ -719,7 +719,6 @@ var _ = Describe("ControllerInstallation controller tests", func() {
 						CloudProfileName: new("test-cloudprofile"),
 						Region:           "foo-region",
 						Provider: gardencorev1beta1.Provider{
-							Type: "foo-provider",
 							Workers: []gardencorev1beta1.Worker{
 								{
 									Name:    "control-plane",
