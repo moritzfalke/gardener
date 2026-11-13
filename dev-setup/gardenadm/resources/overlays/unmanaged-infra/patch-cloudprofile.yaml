@@ -1,0 +1,9 @@
+apiVersion: core.gardener.cloud/v1beta1
+kind: CloudProfile
+metadata:
+  name: local
+spec:
+  # Allow scheduling onto unmanaged self-hosted seeds without an infrastructure provider type.
+  seedSelector:
+    providerTypes:
+    - "*"
